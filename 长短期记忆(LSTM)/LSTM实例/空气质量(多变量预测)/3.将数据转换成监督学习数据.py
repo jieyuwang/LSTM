@@ -17,21 +17,21 @@ pd.set_option('display.width', 1000)
 pd.set_option('display.max_colwidth',1000)
 
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
-    # »ñÈ¡ÌØÕ÷ÖµÊıÁ¿n_vars
+    # è·å–ç‰¹å¾å€¼æ•°é‡n_vars
     n_vars = 1 if type(data) is list else data.shape[1]
     df = DataFrame(data)
     print(df)
     cols, names = list(), list()
     # input sequence (t-n, ... t-1)
-    # ´´½¨8¸öv(t-1)×÷ÎªÁĞÃû
+    # åˆ›å»º8ä¸ªv(t-1)ä½œä¸ºåˆ—å
     for i in range(n_in, 0, -1):
-        # ÏòÁĞ±ícolsÖĞÌí¼ÓÒ»¸ödf.shift(1)µÄÊı¾İ
+        # å‘åˆ—è¡¨colsä¸­æ·»åŠ ä¸€ä¸ªdf.shift(1)çš„æ•°æ®
         cols.append(df.shift(i))
         print(cols)
         names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
     # forecast sequence (t, t+1, ... t+n)
     for i in range(0, n_out):
-        # ÏòÁĞ±ícolsÖĞÌí¼ÓÒ»¸ödf.shift(-1)µÄÊı¾İ
+        # å‘åˆ—è¡¨colsä¸­æ·»åŠ ä¸€ä¸ªdf.shift(-1)çš„æ•°æ®
         cols.append(df.shift(-i))
         print(cols)
         if i == 0:
@@ -39,13 +39,13 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
         else:
         	names += [('var%d(t+%d)' % (j+1, i)) for j in range(n_vars)]
     print(cols)
-    # ½«ÁĞ±íÖĞÁ½¸öÕÅÁ¿°´ÕÕÁĞÆ´½ÓÆğÀ´£¬list(v1,v2)->[v1,v2],ÆäÖĞv1ÏòÏÂÒÆ¶¯ÁËÒ»ĞĞ£¬´ËÊ±v1,v2ÊÇ¼à¶½Ñ§Ï°ĞÍÊı¾İ
+    # å°†åˆ—è¡¨ä¸­ä¸¤ä¸ªå¼ é‡æŒ‰ç…§åˆ—æ‹¼æ¥èµ·æ¥ï¼Œlist(v1,v2)->[v1,v2],å…¶ä¸­v1å‘ä¸‹ç§»åŠ¨äº†ä¸€è¡Œï¼Œæ­¤æ—¶v1,v2æ˜¯ç›‘ç£å­¦ä¹ å‹æ•°æ®
     agg = concat(cols, axis=1)
     print(agg)
-    # ÖØ¶¨ÒåÁĞÃû
+    # é‡å®šä¹‰åˆ—å
     agg.columns = names
     print(agg)
-    # É¾³ı¿ÕÖµ
+    # åˆ é™¤ç©ºå€¼
     if dropnan:
     	agg.dropna(inplace=True)
     return agg
@@ -54,20 +54,20 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 dataset = read_csv('pollution.csv', header=0, index_col=0)
 values = dataset.values
 print(values)
-# ¶ÔµÚËÄÁĞ¡°·çÏò¡±½øĞĞÊı×Ö±àÂë×ª»»
+# å¯¹ç¬¬å››åˆ—â€œé£å‘â€è¿›è¡Œæ•°å­—ç¼–ç è½¬æ¢
 encoder = LabelEncoder()
 values[:,4] = encoder.fit_transform(values[:,4])
 print(values[:,4])
-# Êı¾İ×ª»»Îª¸¡µãĞÍ
+# æ•°æ®è½¬æ¢ä¸ºæµ®ç‚¹å‹
 values = values.astype('float32')
-# ½«ËùÓĞÊı¾İËõ·Åµ½£¨0£¬1£©Ö®¼ä
+# å°†æ‰€æœ‰æ•°æ®ç¼©æ”¾åˆ°ï¼ˆ0ï¼Œ1ï¼‰ä¹‹é—´
 scaler = MinMaxScaler(feature_range=(0, 1))
 scaled = scaler.fit_transform(values)
-# ½«Êı¾İ¸ñÊ½»¯³É¼à¶½Ñ§Ï°ĞÍÊı¾İ
+# å°†æ•°æ®æ ¼å¼åŒ–æˆç›‘ç£å­¦ä¹ å‹æ•°æ®
 reframed = series_to_supervised(scaled, 1, 1)
 print(reframed.head())
-# É¾µôÄÇĞ©ÎÒÃÇ²»ÏëÔ¤²âµÄÁĞ,axis=1ÁĞ²Ù×÷
+# åˆ æ‰é‚£äº›æˆ‘ä»¬ä¸æƒ³é¢„æµ‹çš„åˆ—,axis=1åˆ—æ“ä½œ
 reframed.drop(reframed.columns[[9,10,11,12,13,14,15]], axis=1, inplace=True)
-# ×îÖÕÃ¿ĞĞÊı¾İ¸ñÊ½ÈçÏÂ£¬ÆäÖĞv1(t-1)~v8(t-1)±íÊ¾Ç°Ò»ÌìµÄÊı¾İ£¬v1(t)±íÊ¾µ±ÌìÒªÔ¤²âµÄÊı¾İ£º
+# æœ€ç»ˆæ¯è¡Œæ•°æ®æ ¼å¼å¦‚ä¸‹ï¼Œå…¶ä¸­v1(t-1)~v8(t-1)è¡¨ç¤ºå‰ä¸€å¤©çš„æ•°æ®ï¼Œv1(t)è¡¨ç¤ºå½“å¤©è¦é¢„æµ‹çš„æ•°æ®ï¼š
 # v1(t-1),v2(t-2),v3(t-3),v4(t-4),v5(t-5),v6(t-6),v7(t-7),v8(t-1),v1(t)
 print(reframed.head())
